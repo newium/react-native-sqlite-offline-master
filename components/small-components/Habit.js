@@ -1,54 +1,60 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
+import { withNavigation } from "react-navigation";
+import { StyleSheet, View, Text, TouchableOpacity, Image } from "react-native";
 
-import {
-    StyleSheet,
+import Icon from "react-native-vector-icons/MaterialIcons";
 
-    View,
-    Text,
-    TouchableOpacity,
-    Image
-  } from "react-native";
+class Habit extends Component {
+  constructor() {
+    super();
+    this.state = {
+      backgroundColor: "gray"
+    };
+  }
 
-  import Icon from "react-native-vector-icons/MaterialIcons";
-
-
-
-
-export default class ProductScreen extends Component {
-    
-    
-    constructor() {
-        super();
-        this.state = {
-            backgroundColor: "#777"
-        };
-      }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    render() {
+  render() {
     return (
-        <View style={styles.listItem}>
+      <View style={styles.listItem}>
         <TouchableOpacity
-          onPress={this.props.handlePress}
+          onPress={() => {
+            this.props.navigation.navigate("ProductDetails", {
+              prodId: `${this.props.prodId}`
+            });
+          }}
           style={styles.whattheflex}
         >
-        <View >
-          <Icon name="color-lens" size={46} color="#46499a" />
-  </View>
-          <View style={{margin:10,textAlign:"left"}}>
-            <Text style={{fontSize:28}}>{this.props.name}<Text>: ZADATAK</Text></Text>
-            
+          <View>
+            <Icon name="color-lens" size={46} color="#46499a" />
+          </View>
+          <View style={{ margin: 10, textAlign: "left" }}>
+            <Text style={{ fontSize: 28 }}>
+              {this.props.name}
+              <Text>{this.state.backgroundColor}</Text>
+            </Text>
           </View>
         </TouchableOpacity>
-  
-        <TouchableOpacity onPress={this.daySwap}>
+
+        <TouchableOpacity
+          onPress={() => {
+            let letter = "#000";
+            if (
+              this.state.backgroundColor === "gray" ||
+              this.state.backgroundColor === "red"
+            )
+              {
+                letter = "green";
+              }
+            else if (this.state.backgroundColor === "green") 
+            {
+              letter = "blue";
+            }
+            else 
+            {
+              letter = "red";
+            }
+            this.setState({ backgroundColor: letter });
+          }}
+        >
           <View>
             <Icon
               name="brightness-4"
@@ -62,35 +68,22 @@ export default class ProductScreen extends Component {
   }
 }
 
-
-daySwap = () => {
-    let letter = "#000";
-    if (
-      this.state.backgroundColor === "#777" ||
-      this.state.backgroundColor === "#f00"
-    )
-      letter = "#0f0";
-    else if (this.state.backgroundColor === "#0f0") letter = "#00f";
-    else letter = "#f00";
-    this.setState({ backgroundColor: letter });
-  };
-
-
 const styles = StyleSheet.create({
- 
-    listItem: {
-      width: "100%",
-      marginBottom: 5,
-      padding: 10,
-      backgroundColor: "#f2f2f2",
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between"
-    },
-    
-    whattheflex: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-start"
-    }
-  });
+  listItem: {
+    width: "100%",
+    marginBottom: 5,
+    padding: 3,
+    backgroundColor: "#f2f2f2",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between"
+  },
+
+  whattheflex: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start"
+  }
+});
+
+export default withNavigation(Habit);

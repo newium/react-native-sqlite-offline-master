@@ -12,6 +12,7 @@ import { ListItem, Button } from "react-native-elements";
 import Database from "../Database2";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import AvatarBar from "./small-components/AvatarBar";
+import Habit from "./small-components/Habit";
 
 const db = new Database();
 
@@ -22,7 +23,10 @@ export default class ProductScreen extends Component {
       headerRight: (
         <Button
           buttonStyle={{ padding: 0, backgroundColor: "transparent" }}
-          icon={{ name: "add-circle", style: { marginRight: 60, fontSize: 36 } }}
+          icon={{
+            name: "add-circle",
+            style: { marginRight: 60, fontSize: 36 }
+          }}
           onPress={() => {
             navigation.navigate("AddProduct", {
               onNavigateBack: this.handleOnNavigateBack
@@ -70,67 +74,16 @@ export default class ProductScreen extends Component {
 
   keyExtractor = (item, index) => index.toString();
 
-
-
-
-
   renderItem = ({ item }) => (
-
-    <View style={styles.listItem}>
-      <TouchableOpacity
-        onPress={() => {
-          this.props.navigation.navigate("ProductDetails", {
-            prodId: `${item.prodId}`
-          });
-        }}
-        style={styles.whattheflex}
-      >
-      <View >
-        <Icon name="color-lens" size={46} color="#46499a" />
-</View>
-        <View style={{margin:10,textAlign:"left"}}>
-          <Text style={{fontSize:28}}>{item.prodName}<Text>: ZADATAK</Text></Text>
-          
-        </View>
-      </TouchableOpacity>
-
-      
-        <View>
-          <Icon
-
-onPress={() => {
-         let letter = "#000";
-          if (
-            this.state.iconColor === "gray" ||
-            this.state.iconColor === "red"
-          )
-            letter = "green";
-    else if (this.state.iconColor === "green") letter = "blue";
-    else letter = "red";
-    this.setState({ iconColor: letter });
-
-}
+   
+<Habit name= {item.prodName}
+prodId={item.prodId}></Habit>
 
 
 
-      }
-
-
-
-
-
-            name="brightness-4"
-            size={36}
-            color={this.state.iconColor}
-          />
-        </View>
-     
-    </View>
   );
 
   // style={[styles.placeImage, {backgroundColor: this.state.backgroundColor}] }  >
-
- 
 
   render() {
     if (this.state.isLoading) {
@@ -148,14 +101,17 @@ onPress={() => {
       );
     }
     return (
-      <View>
+      <View>  
         <AvatarBar />
         <FlatList
           keyExtractor={this.keyExtractor}
           data={this.state.products}
           renderItem={this.renderItem}
         />
+        
+         
       </View>
+     
     );
   }
 }
@@ -163,7 +119,8 @@ onPress={() => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingBottom: 22
+    alignItems: "center",
+    
   },
   item: {
     padding: 10,
