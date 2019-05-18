@@ -13,12 +13,14 @@ import ProductScreen from './components/ProductScreen';
 import ProductDetailsScreen from './components/ProductDetailsScreen';
 import ProductAddScreen from './components/ProductAddScreen';
 import ProductEditScreen from './components/ProductEditScreen';
+import HabitAddScreen from './components/HabitAddScreen';
 
 const RootStack = createStackNavigator(
   {
     Product: ProductScreen,
     ProductDetails: ProductDetailsScreen,
     AddProduct: ProductAddScreen,
+    AddHabit: HabitAddScreen,
     EditProduct: ProductEditScreen,
   },
   {

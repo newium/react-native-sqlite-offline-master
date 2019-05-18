@@ -24,7 +24,7 @@ class Habit extends Component {
           style={styles.whattheflex}
         >
           <View>
-            <Icon name="color-lens" size={46} color="#46499a" />
+            <Icon name="invert-colors" size={46} color="#46499a" />
           </View>
           <View style={{ margin: 10, textAlign: "left" }}>
             <Text style={{ fontSize: 28 }}>
@@ -57,7 +57,7 @@ class Habit extends Component {
         >
           <View>
             <Icon
-              name="brightness-4"
+              name="location-city"
               size={36}
               color={this.state.backgroundColor}
             />

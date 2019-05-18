@@ -156,6 +156,77 @@ export default class Database {
     });  
   }
 
+  addDay(habit, habitID) {
+    return new Promise((resolve) => {
+      this.initDB().then((db) => {
+        db.transaction((tx) => {
+          tx.executeSql('INSERT INTO Day ("day", "month", "year","status","locked","task","habitId") VALUES (?, ?, ?, ?, ?, ?, ?)', [habit.startDay, habit.startMonth, habit.startYear, 'none', 0,habit.startValue+' '+habit.unit,habitID]).then(([tx, results]) => {
+            resolve(results);
+          });
+        }).then((result) => {
+          this.closeDatabase(db);
+        }).catch((err) => {
+          console.log(err);
+        });
+      }).catch((err) => {
+        console.log(err);
+      });
+    });  
+  }
+
+
+  addHabit(habit) {
+    return new Promise((resolve) => {
+      this.initDB().then((db) => {
+        db.transaction((tx) => {
+
+          
+
+
+          tx.executeSql('INSERT INTO Habit ("habitName", "icon", "unit", "startValue", "rateValue", "rateDays", "startDay", "startMonth", "startYear", "currentReward", "currentDayUntilReward") VALUES (?, ?, ?, ?, ?,?,?, ?, ?, ?, ?)',[habit.habitName, habit.icon, habit.unit, habit.startValue, habit.rateValue, habit.rateDays, habit.startDay, habit.startMonth, habit.startYear, habit.currentReward, habit.currentDayUntilReward]).then(([tx, results]) => {
+            resolve(results);
+          });
+        }).then((result) => {
+          this.closeDatabase(db);
+        }).catch((err) => {
+          console.log(err);
+        });
+      }).catch((err) => {
+        console.log(err);
+      });
+    }); 
+    
+    
+
+
+    
+  }
+
+  updateHabit(habit) {
+    return new Promise((resolve) => {
+      this.initDB().then((db) => {
+        db.transaction((tx) => {
+
+          
+
+
+          tx.executeSql('UPDATE Habit SET habitName = ?, icon = ?, unit = ?, startValue = ?, rateValue = ?, rateDays = ?,  currentReward = ?, currentDayUntilReward = ? WHERE habitId= ?',[habit.habitName, habit.icon, habit.unit, habit.startValue, habit.rateValue, habit.rateDays, habit.currentReward, habit.currentDayUntilReward,id]).then(([tx, results]) => {
+            resolve(results);
+          });
+        }).then((result) => {
+          this.closeDatabase(db);
+        }).catch((err) => {
+          console.log(err);
+        });
+      }).catch((err) => {
+        console.log(err);
+      });
+    });  
+  }
+
+
+
+
   updateProduct(id, prod) {
     return new Promise((resolve) => {
       this.initDB().then((db) => {

@@ -28,7 +28,21 @@ export default class ProductScreen extends Component {
             style: { marginRight: 60, fontSize: 36 }
           }}
           onPress={() => {
-            navigation.navigate("AddProduct", {
+            navigation.navigate("AddHabit", {
+              onNavigateBack: this.handleOnNavigateBack
+            });
+          }}
+        />
+      ),
+      headerLeft: (
+        <Button
+          buttonStyle={{ padding: 0, backgroundColor: "transparent" }}
+          icon={{
+            name: "headset",
+            style: { marginRight: 60, fontSize: 36 }
+          }}
+          onPress={() => {
+            navigation.navigate("AddHabit", {
               onNavigateBack: this.handleOnNavigateBack
             });
           }}
