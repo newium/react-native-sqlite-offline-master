@@ -9,15 +9,15 @@ const db = new Database();
 
 export default class ProductDetailsScreen extends Component {
   static navigationOptions = {
-    title: 'Product Details',
+    title: 'Habit Details',
   }
 
   constructor() {
     super();
     this.state = {
       isLoading: true,
-      product: {},
-      id: '',
+      days: {},
+      
     };
   }
 
@@ -77,9 +77,9 @@ export default class ProductDetailsScreen extends Component {
             <Calendar
           
           dayComponent={CalendarDayComponent}
-          minDate={'2019-02-10'}
+          minDate={'2019-05-10'}
   // Maximum date that can be selected, dates after maxDate will be grayed out. Default = undefined
-  maxDate={'2019-02-20'}
+  maxDate={'2019-05-20'}
           style={{
             paddingLeft: 0, paddingRight: 0
           }}
