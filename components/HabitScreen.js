@@ -13,7 +13,7 @@ import { ListItem, Button } from "react-native-elements";
 import Database from "../Database2";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import AvatarBar from "./small-components/AvatarBar";
-import Habit from "./small-components/HabitUnfinished";
+import Habit from "./small-components/Habit";
 import Dialog, {
   DialogTitle,
   DialogContent,
@@ -22,6 +22,9 @@ import Dialog, {
   SlideAnimation,
   ScaleAnimation,
 } from 'react-native-popup-dialog';
+import HabitUnfinished from "./small-components/HabitUnfinished";
+
+
 
 
 const db = new Database();
@@ -44,20 +47,7 @@ export default class ProductScreen extends Component {
           }}
         />
       ),
-      headerLeft: (
-        <Button
-          buttonStyle={{ padding: 0, backgroundColor: "transparent" }}
-          icon={{
-            name: "headset",
-            style: { marginRight: 60, fontSize: 36 }
-          }}
-          onPress={() => {
-            navigation.navigate("AddHabit", {
-              onNavigateBack: this.handleOnNavigateBack
-            });
-          }}
-        />
-      )
+     
     };
   };
 
@@ -65,18 +55,106 @@ export default class ProductScreen extends Component {
     super();
     this.state = {
       isLoading: true,
-      products: [],
-      unfinishedHabitsDialog: true,
+      habits: [],
+      lastAccess: '',
+      user: {},
+      unfinishedDays: [],
+      unfinishedHabitsDialog: false,
       notFound:
         "You have no habits yet :(\nPlease click (+) button to add some",
-      iconColor: "gray"
+      
     };
   }
 
   componentDidMount() {
     this._subscribe = this.props.navigation.addListener("didFocus", () => {
-      this.getProducts();
+      this.getHabits();
+      this.getUser();
     });
+    let today= new Date();
+    this.updateUserAccess(today);
+    let yesterday=today-(12*60*60*1000);
+      getUnfinishedDays(yesterday);
+
+      
+    if(today.getHours<12)
+    {
+      
+      if(this.state.unfinishedDays.length===0)
+      {
+        this._interval = setInterval(() => {
+            let noon=new Date();
+            noon.setHours=12;
+            noon.setMinutes=0;
+            if(today>=noon)
+            {
+              this.calculatePoints();
+            }
+
+              }, 120000); 
+      }
+      
+      else
+      {
+        this.setState({
+          unfinishedHabitsDialog:true,
+        });
+      
+      }
+    }
+    else
+    {
+
+    }
+  }
+
+  componentWillUnmount() {
+    clearInterval(this._interval);
+  }
+
+
+  calculatePoints(){
+
+
+
+  }
+
+
+
+  updateUserAccess(today) 
+  {
+    let data= now.toString();
+    db.updateUserAccess(data).then((result) => {
+      console.log(result);
+      this.setState({
+        isLoading: false,
+      });
+      
+    }).catch((err) => {
+      console.log(err);
+      this.setState({
+        isLoading: false,
+      });
+    })
+  }
+
+
+  getUnfinishedDays(date) {
+    let days = [];
+    db.getUnfinishedDay(date.getDate(),date.getMonth(),date.getHour())
+      .then(data => {
+        days = data;
+        this.setState({
+          unfinishedDays=days,
+          isLoading: false
+        });
+      })
+      .catch(err => {
+        console.log(err);
+        this.setState = {
+          isLoading: false
+        };
+      });
   }
 
   getProducts() {
@@ -97,13 +175,86 @@ export default class ProductScreen extends Component {
       });
   }
 
+  getHabits() {
+    let habits = [];
+    db.listHabits()
+      .then(data => {
+        habits = data;
+        this.setState({
+          habits
+        });
+      })
+      .catch(err => {
+        console.log(err);
+        this.setState = {
+          isLoading: false
+        };
+      });
+  }
+
+  getUser() {
+    let habits = [];
+    db.getUser()
+      .then(data => {
+        user = data;
+        this.setState({
+          user,
+          lastAccess:new Date(user.lastAccess),
+          isLoading: false
+        });
+      })
+      .catch(err => {
+        console.log(err);
+        this.setState = {
+          isLoading: false
+        };
+      });
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   keyExtractor = (item, index) => index.toString();
 
-  renderItem = ({ item }) => (
+  renderRegular = ({ item }) => (
    
-      <Habit name= {item.prodName}
-      prodId={item.prodId}></Habit>
-        );
+<Habit name= {item.habitName}
+id={item.habitId}
+icon={item.icon}
+handleHabit={(emotion)=> {
+  this.setState({
+          avatarEmotion: emotion,
+        });
+}}
+>
+</Habit>
+  );
+
+  renderUnfinished=({item})=>
+  {
+
+    <HabitUnfinished
+    name={this.state.habits.find(function(element) {
+  return element.habitId = item.habitId;
+    })[name] }
+    icon={this.state.habits.find(function(element) {
+  return element.habitId = item.habitId;
+    })[icon] }
+    
+    >
+
+    </HabitUnfinished>
+  }
 
   // style={[styles.placeImage, {backgroundColor: this.state.backgroundColor}] }  >
 
@@ -122,7 +273,6 @@ export default class ProductScreen extends Component {
         </View>
       );
     }
-   
     return (
       <View>  
         <AvatarBar />
@@ -177,19 +327,17 @@ export default class ProductScreen extends Component {
           >
             <FlatList
           keyExtractor={this.keyExtractor}
-          data={this.state.products}
-          renderItem={this.renderItem}
+          data={this.state.unfinishedDays}
+          renderItem={this.renderUnfinished}
         />
 
-
-             </DialogContent>
+          </DialogContent>
         </Dialog>
-
 
         <FlatList
           keyExtractor={this.keyExtractor}
-          data={this.state.products}
-          renderItem={this.renderItem}
+          data={this.state.habits}
+          render={this.renderRegular}
         />
         
          

@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
+import Database from "../Database2";
+
 
 const weekDaysNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -66,6 +68,8 @@ class CalendarDayComponent extends React.Component {
 
   onDayPress() {
     this.props.onPress(this.props.date);
+    console.log(this.props);
+    console.log(this);
   }
 
   render() {

@@ -77,9 +77,9 @@ export default class ProductDetailsScreen extends Component {
             <Calendar
           
           dayComponent={CalendarDayComponent}
-          minDate={'2019-02-10'}
+          minDate={'2019-05-10'}
   // Maximum date that can be selected, dates after maxDate will be grayed out. Default = undefined
-  maxDate={'2019-02-20'}
+  maxDate={'2019-05-23'}
           style={{
             paddingLeft: 0, paddingRight: 0
           }}

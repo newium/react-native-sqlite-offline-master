@@ -20,7 +20,7 @@ class AvatarBar extends Component  {
       let num=(this.state.currentFace+1)%6 ;
         this.state.currentFace=num;
         this.forceUpdate()
-    }, 1000);
+    }, 5000);
   }
 
   componentWillUnmount() {

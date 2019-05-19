@@ -17,22 +17,20 @@ class Habit extends Component {
       <View style={styles.listItem}>
         <TouchableOpacity
           onPress={() => {
-            this.props.navigation.navigate("Habit Details\n`${this.props.habitName}`", {
-              habitId: `${this.props.habitId}`
+            this.props.navigation.navigate("ProductDetails", {
+              prodId: `${this.props.prodId}`
             });
           }}
           style={styles.whattheflex}
         >
           <View>
-            <Icon name={this.props.icon} size={36} color="#111" />
+            <Icon name="invert-colors" size={46} color="#46499a" />
           </View>
-          <View style={{ margin: 5, flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between" }}>
-           <View> <Text style={{ fontSize: 24 }}>
-              {this.props.name}</Text></View>
-              <View> <Text>{this.state.dayTask}</Text></View>
-            
+          <View style={{ margin: 10, textAlign: "left" }}>
+            <Text style={{ fontSize: 28 }}>
+              {this.props.name}
+              <Text>{this.state.backgroundColor}</Text>
+            </Text>
           </View>
         </TouchableOpacity>
 
@@ -88,4 +86,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default withNavigation(Habit);
+export default (Habit);

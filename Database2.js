@@ -138,6 +138,31 @@ export default class Database {
     });  
   }
 
+  getUnfinishedDay(day,month,year) {
+    
+    return new Promise((resolve) => {
+      this.initDB().then((db) => {
+        db.transaction((tx) => {
+          tx.executeSql('SELECT * FROM Day WHERE (status = "" or status = "none") and day= ? and month= ? and year= ?', [day,month,year]).then(([tx,results]) => {
+            
+            
+            console.log(results);
+            if(results.rows.length > 0) {
+              let row = results.rows.item(0);
+              resolve(row);
+            }
+          });
+        }).then((result) => {
+          this.closeDatabase(db);
+        }).catch((err) => {
+          console.log(err);
+        });
+      }).catch((err) => {
+        console.log(err);
+      });
+    });  
+  }
+
   addProduct(prod) {
     return new Promise((resolve) => {
       this.initDB().then((db) => {
@@ -224,7 +249,23 @@ export default class Database {
     });  
   }
 
-
+  updateUserAccess(today) {
+    return new Promise((resolve) => {
+      this.initDB().then((db) => {
+        db.transaction((tx) => {
+          tx.executeSql('UPDATE User SET lastAccess = ?',[today]).then(([tx, results]) => {
+            resolve(results);
+          });
+        }).then((result) => {
+          this.closeDatabase(db);
+        }).catch((err) => {
+          console.log(err);
+        });
+      }).catch((err) => {
+        console.log(err);
+      });
+    });  
+  }
 
 
   updateProduct(id, prod) {
