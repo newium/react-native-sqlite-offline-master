@@ -33,25 +33,9 @@ export default class Database {
                   console.log("Received error: ", error);
                   console.log("Database not yet ready ... populating data");
                   db.transaction((tx) => {
-
-
-
-
-                    tx.executeSql('CREATE TABLE IF NOT EXISTS Product (prodId, prodName, prodDesc, prodImage, prodPrice)');
-
-                    tx.executeSql('CREATE TABLE IF NOT EXISTS Avatar (avatarId, avatarName, avatarDesc, avatarPrice, avatarCurrentHealth,avatarMaximumHealth)');
-
-
-
-
-
-
-
-
-
-                    
+                      // recreate table
                   }).then(() => {
-                      console.log("Table created successfully");
+                      console.log("Tables created successfully");
                   }).catch(error => {
                       console.log(error);
                   });
@@ -115,6 +99,26 @@ export default class Database {
     });  
   }
 
+  listHabits() {
+    return new Promise((resolve) => {
+      
+      this.initDB().then((db) => {
+        db.transaction((tx) => {
+          tx.executeSql('SELECT * FROM Habit', []).then(([tx,results]) => {
+            
+            resolve(results);
+          });
+        }).then((result) => {
+          this.closeDatabase(db);
+        }).catch((err) => {
+          console.log(err);
+        });
+      }).catch((err) => {
+        console.log(err);
+      });
+    });  
+  }
+
   productById(id) {
     console.log(id);
     return new Promise((resolve) => {
@@ -138,12 +142,109 @@ export default class Database {
     });  
   }
 
-  getUnfinishedDay(day,month,year) {
+  habitById(id) {
+    console.log(id);
+    return new Promise((resolve) => {
+      this.initDB().then((db) => {
+        db.transaction((tx) => {
+          tx.executeSql('SELECT * FROM Habit WHERE habitId = ?', [id]).then(([tx,results]) => {
+            console.log(results);
+            if(results.rows.length > 0) {
+              let row = results.rows.item(0);
+              resolve(row);
+            }
+          });
+        }).then((result) => {
+          this.closeDatabase(db);
+        }).catch((err) => {
+          console.log(err);
+        });
+      }).catch((err) => {
+        console.log(err);
+      });
+    });  
+  }
+
+
+  getUnfinishedDays(now) {
+    let days = [];
+    return new Promise((resolve) => {
+      this.initDB().then((db) => {
+        db.transaction((tx) => {
+          tx.executeSql('SELECT * FROM Day WHERE status = "none" and timestamp < ?', [now.valueOf()]).then(([tx,results]) => {
+            
+            
+            console.log(results);
+            
+              resolve(results);
+            
+          });
+        }).then((result) => {
+          this.closeDatabase(db);
+        }).catch((err) => {
+          console.log(err);
+        });
+      }).catch((err) => {
+        console.log(err);
+      });
+    });  
+  }
+
+  getUncalculatedDaysForHabit(now, habitId) {
+    let days = [];
+    return new Promise((resolve) => {
+      this.initDB().then((db) => {
+        db.transaction((tx) => {
+          tx.executeSql('SELECT * FROM Day WHERE calculated = 0 and timestamp < ? and habitId= ? order by timestamp ASC', [now.valueOf(),habitId]).then(([tx,results]) => {
+            
+            
+            console.log(results);
+            
+              resolve(results);
+            
+          });
+        }).then((result) => {
+          this.closeDatabase(db);
+        }).catch((err) => {
+          console.log(err);
+        });
+      }).catch((err) => {
+        console.log(err);
+      });
+    });  
+  }
+
+  setCalculatedDaysForHabit(now, habitId) {
+    let days = [];
+    return new Promise((resolve) => {
+      this.initDB().then((db) => {
+        db.transaction((tx) => {
+          tx.executeSql('UPDATE Day SET calculated = 1 WHERE timestamp < ? and habitId= ? ', [now.valueOf(),habitId]).then(([tx,results]) => {
+            
+            
+            console.log(results);
+            
+              resolve(results);
+            
+          });
+        }).then((result) => {
+          this.closeDatabase(db);
+        }).catch((err) => {
+          console.log(err);
+        });
+      }).catch((err) => {
+        console.log(err);
+      });
+    });  
+  }
+
+  getUnfinishedDayForDate(date) {
+    
     
     return new Promise((resolve) => {
       this.initDB().then((db) => {
         db.transaction((tx) => {
-          tx.executeSql('SELECT * FROM Day WHERE (status = "" or status = "none") and day= ? and month= ? and year= ?', [day,month,year]).then(([tx,results]) => {
+          tx.executeSql('SELECT * FROM Day WHERE status = "none" and day= ? and month= ? and year= ? ', [date.getDate(),date.getMonth()+1,date.getFullYear()]).then(([tx,results]) => {
             
             
             console.log(results);
@@ -163,6 +264,114 @@ export default class Database {
     });  
   }
 
+  getUnfinishedDayForHabit(date,habitId) {
+    
+    return new Promise((resolve) => {
+      this.initDB().then((db) => {
+        db.transaction((tx) => {
+          tx.executeSql('SELECT * FROM Day WHERE status = "none" and day= ? and month= ? and year= ? and habitId=?', [date.getDate(),date.getMonth()+1,date.getFullYear(),habitId]).then(([tx,results]) => {
+            
+            
+            console.log(results);
+            if(results.rows.length > 0) {
+              let row = results.rows.item(0);
+              resolve(row);
+            }
+          });
+        }).then((result) => {
+          this.closeDatabase(db);
+        }).catch((err) => {
+          console.log(err);
+        });
+      }).catch((err) => {
+        console.log(err);
+      });
+    });  
+  }
+
+  getLastPredictedDayForHabit(habitId) {
+    
+    return new Promise((resolve) => {
+      this.initDB().then((db) => {
+        db.transaction((tx) => {
+          tx.executeSql('SELECT * FROM Day WHERE habitId=? order by timestamp desc limit 1', [habitId]).then(([tx,results]) => {
+            
+            
+            console.log(results);
+            if(results.rows.length > 0) {
+              let row = results.rows.item(0);
+              resolve(row);
+            }
+          });
+        }).then((result) => {
+          this.closeDatabase(db);
+        }).catch((err) => {
+          console.log(err);
+        });
+      }).catch((err) => {
+        console.log(err);
+      });
+    });  
+  }
+
+  getAllDaysForHabit(habitId) {
+    
+    return new Promise((resolve) => {
+      this.initDB().then((db) => {
+        db.transaction((tx) => {
+          tx.executeSql('SELECT * FROM Day WHERE habitId=? order by timestamp ASC', [habitId]).then(([tx,results]) => {
+            
+            let days=[]
+            console.log("Query completed");
+            var len = results.rows.length;
+            for (let i = 0; i < len; i++) {
+                days.push(results.rows.item(i));
+            }
+            //console.table(days);
+           
+            resolve(days);
+          });
+        }).then((result) => {
+          this.closeDatabase(db);
+        }).catch((err) => {
+          console.log(err);
+        });
+      }).catch((err) => {
+        console.log(err);
+      });
+    });  
+  }
+
+
+
+
+
+  getDayForHabit(day,habitId) {
+    
+    return new Promise((resolve) => {
+      this.initDB().then((db) => {
+        db.transaction((tx) => {
+          tx.executeSql('SELECT * FROM Day WHERE  day= ? and month= ? and year= ? and habitId=?', [day.getDate(),day.getMonth()+1,day.getFullYear(), habitId]).then(([tx,results]) => {
+            
+            
+            console.log(results);
+            if(results.rows.length > 0) {
+              let row = results.rows.item(0);
+              resolve(row);
+            }
+          });
+        }).then((result) => {
+          this.closeDatabase(db);
+        }).catch((err) => {
+          console.log(err);
+        });
+      }).catch((err) => {
+        console.log(err);
+      });
+    });  
+  }
+
+
   addProduct(prod) {
     return new Promise((resolve) => {
       this.initDB().then((db) => {
@@ -181,11 +390,12 @@ export default class Database {
     });  
   }
 
-  addDay(habit, habitID) {
+  
+  addBlankDay(day, task, habitId) {
     return new Promise((resolve) => {
       this.initDB().then((db) => {
         db.transaction((tx) => {
-          tx.executeSql('INSERT INTO Day ("day", "month", "year","status","locked","task","habitId") VALUES (?, ?, ?, ?, ?, ?, ?)', [habit.startDay, habit.startMonth, habit.startYear, 'none', 0,habit.startValue+' '+habit.unit,habitID]).then(([tx, results]) => {
+          tx.executeSql('INSERT INTO Day ("day", "month", "year","task","habitId","timestamp") VALUES (?, ?, ?,  ?, ?, ?)', [day.getDate(),day.getMonth()+1,day.getFullYear(), task,habitId,day.valueOf()]).then(([tx, results]) => {
             resolve(results);
           });
         }).then((result) => {
@@ -199,16 +409,12 @@ export default class Database {
     });  
   }
 
-
   addHabit(habit) {
     return new Promise((resolve) => {
       this.initDB().then((db) => {
         db.transaction((tx) => {
 
-          
-
-
-          tx.executeSql('INSERT INTO Habit ("habitName", "icon", "unit", "startValue", "rateValue", "rateDays", "startDay", "startMonth", "startYear", "currentReward", "currentDayUntilReward") VALUES (?, ?, ?, ?, ?,?,?, ?, ?, ?, ?)',[habit.habitName, habit.icon, habit.unit, habit.startValue, habit.rateValue, habit.rateDays, habit.startDay, habit.startMonth, habit.startYear, habit.currentReward, habit.currentDayUntilReward]).then(([tx, results]) => {
+          tx.executeSql('INSERT INTO Habit ("habitName", "icon", "unit", "startValue", "rateValue", "rateDays", "startDay", "startMonth", "startYear", "currentReward", "currentDayUntilReward", "timestamp") VALUES (?, ?, ?, ?, ?,?,?, ?, ?, ?, ?,?)',[habit.habitName, habit.icon, habit.unit, habit.startValue, habit.rateValue, habit.rateDays, habit.startDay, habit.startMonth, habit.startYear, habit.currentReward, habit.currentDayUntilReward, habit.timestamp]).then(([tx, results]) => {
             resolve(results);
           });
         }).then((result) => {
@@ -253,9 +459,51 @@ export default class Database {
     return new Promise((resolve) => {
       this.initDB().then((db) => {
         db.transaction((tx) => {
-          tx.executeSql('UPDATE User SET lastAccess = ?',[today]).then(([tx, results]) => {
+          tx.executeSql('UPDATE User SET lastAccess = ?',[today.valueOf()]).then(([tx, results]) => {
             resolve(results);
           });
+        }).then((result) => {
+          this.closeDatabase(db);
+        }).catch((err) => {
+          console.log(err);
+        });
+      }).catch((err) => {
+        console.log(err);
+      });
+    });  
+  }
+
+  updateDayStatus(status, date,habitId) {
+    let day=new Date(date);
+    console.log(day)
+    return new Promise((resolve) => {
+      this.initDB().then((db) => {
+        db.transaction((tx) => {
+          tx.executeSql('UPDATE Day SET status = ? WHERE day= ? and month=? and year=? and habitId=?',[status,day.getDate(),day.getMonth()+1,day.getFullYear(),habitId]).then(([tx, results]) => {
+            resolve(results);
+          });
+          
+        }).then((result) => {
+          this.closeDatabase(db);
+        }).catch((err) => {
+          console.log(err);
+        });
+      }).catch((err) => {
+        console.log(err);
+      });
+    });  
+  }
+
+
+  updateDayTask(task, date, habitId) {
+    let day=new Date(date);
+    return new Promise((resolve) => {
+      this.initDB().then((db) => {
+        db.transaction((tx) => {
+          tx.executeSql('UPDATE Day SET task = ? WHERE day= ? and month=? and year=? and habitId=?',[task,day.getDate(),day.getMonth()+1,day.getFullYear(),habitId]).then(([tx, results]) => {
+            resolve(results);
+          });
+          
         }).then((result) => {
           this.closeDatabase(db);
         }).catch((err) => {
@@ -293,6 +541,32 @@ export default class Database {
           tx.executeSql('DELETE FROM Product WHERE prodId = ?', [id]).then(([tx, results]) => {
             console.log(results);
             resolve(results);
+          });
+        }).then((result) => {
+          this.closeDatabase(db);
+        }).catch((err) => {
+          console.log(err);
+        });
+      }).catch((err) => {
+        console.log(err);
+      });
+    });  
+  }
+
+
+  getUser() {
+    console.log("I'0m getting the user infoi");
+    return new Promise((resolve) => {
+      this.initDB().then((db) => {
+        db.transaction((tx) => {
+         // tx.executeSql('SELECT * FROM User,Avatars WHERE avatarId = currentAvatarId Or 1', []).then(([tx,results]) => {
+         tx.executeSql('SELECT * FROM User', []).then(([tx,results]) => {
+
+         console.log(results);
+            if(results.rows.length > 0) {
+              let row = results.rows.item(0);
+              resolve(row);
+            }
           });
         }).then((result) => {
           this.closeDatabase(db);

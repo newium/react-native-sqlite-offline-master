@@ -19,10 +19,8 @@ export default class HabitAddScreen extends Component {
                      startValue: "",
                      rateValue: "",
                      rateDays: "",
-                     startDay: new Date().getDate(),
-                     startMonth: new Date().getMonth(),
-                     startYear: new Date().getFullYear(),
-                     currentReward: "",
+                     startDate: new Date(),
+                     currentReward: 0,
                      currentDayUntilReward: "",
                      isLoading: false
                    };
@@ -42,13 +40,14 @@ export default class HabitAddScreen extends Component {
                      habitName: this.state.habitName,
                      icon: this.state.icon,
                      unit: this.state.unit,
-                     startValue: this.state.startValue,
-                     rateValue: this.state.rateValue,
-                     rateDays: this.state.rateDays,
-                     startDay: this.state.startDay,
-                     startMonth: this.state.startMonth,
-                     startYear: this.state.startYear,
-                     currentReward: 1,
+                     startValue:Number( this.state.startValue),
+                     rateValue: Number(this.state.rateValue),
+                     rateDays: Number(this.state.rateDays),
+                     startDay: this.state.startDate.getDate(),
+                     startMonth: this.state.startDate.getMonth(),
+                     startYear: this.state.startDate.getFullYear(),
+                     timestamp: this.state.startDate.valueOf(),
+                     currentReward: 0,
                      currentDayUntilReward: this.state.rateDays
                    };
                    db.addHabit(data)
@@ -61,19 +60,41 @@ export default class HabitAddScreen extends Component {
                        });
                      })
                      .then(() => {
-                       db.addDay(data, this.state.habitId).then(
-                         result => {
-                           console.log(result);
-                           this.setState({
-                             isLoading: false
-                           });
-                         }
-                       );
+                      let day=this.state.startDate
+                      let dayMilis=day.valueOf();
+                      let task=Number(this.state.startValue);
+                      let counter=Number(this.state.rateDays);
+                      for(let i=0;i<50;i++)
+                      {
+                        console.log(task);
+                        console.log(counter);
+                          db.addBlankDay(day, task,this.state.habitId).then(
+                          result => {
+                            //console.log(result);
+                            
+                          }
+                        );
+                        dayMilis+=24*60*60*1000;
+                        day=new Date(dayMilis);
+                        counter--;
+                        if(counter===0)
+                        {
+                          task+=Number(this.state.rateValue);
+                          counter=Number(this.state.rateDays);
+                        }
+                          
+                      }
+                       
 
+                      
+                     }
+                     
+                     
+                     ).then(() => { 
                        this.props.navigation.state.params
                          .onNavigateBack;
                        this.props.navigation.goBack();
-                     })
+                      })
                      .catch(err => {
                        console.log(err);
                        this.setState({
@@ -110,9 +131,9 @@ export default class HabitAddScreen extends Component {
 
                        <View style={styles.subContainer}>
                          <TextInput
-                           placeholder={"Icon"}
+                           placeholder={"Icon name"}
                            value={this.state.icon}
-                           keyboardType="numeric"
+                           
                            onChangeText={text =>
                              this.updateTextInput(text, "icon")
                            }

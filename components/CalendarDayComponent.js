@@ -21,25 +21,46 @@ class CalendarDayComponent extends React.Component {
       }
     };
 
-    if (marking.soldOut) {
-      style.text.color = '#fff';
-      style.content.backgroundColor = '#e35052';
-      style.content.borderRadius = 50;
-    } else if (marking.blocked) {
-      style.text.color = '#fff';
-      style.content.backgroundColor = '#c1c2c1';
-      style.content.borderRadius = 50;
-    } else if (state === 'disabled') {
+   
+      if (state === 'today') {
+        style.text.color = '#fff';
+        style.content.borderRadius = 50;
+        if(marking.status==='great')
+          style.content.backgroundColor = 'green';
+        else  if(marking.status==='neutral')
+          style.content.backgroundColor = 'blue';
+        else  if(marking.status==='bad')
+          style.content.backgroundColor = 'red';
+          else 
+          style.content.backgroundColor = 'gray';
+      }
+      else if(marking.status==='bad')
+        {
+          
+          style.text.color = '#fff';
+          style.content.backgroundColor = '#dd8f90';
+          style.content.borderRadius = 50;
+        }
+     else if(marking.status==='neutral')
+        {
+          
+          style.text.color = '#fff';
+          style.content.backgroundColor = '#8f90dd';
+          style.content.borderRadius = 50;
+        }
+        else if(marking.status==='great')
+        {
+          
+          style.text.color = '#fff';
+          style.content.backgroundColor = '#8fdd90';
+          style.content.borderRadius = 50;
+        }
+
+
+
+    if (state === 'disabled') {
       style.text.color = '#c1c2c1';
-    } else if (state === 'today') {
-      style.text.color = '#fff';
-      style.content.backgroundColor = '#216bc9';
-      style.content.borderRadius = 50;
-    } else if (current === date.dateString) {
-      style.content.borderRadius = 50;
-      style.content.borderWidth = 1;
-      style.content.borderColor = '#216bc9';
-    }
+    } 
 
     return style;
   }
@@ -47,7 +68,8 @@ class CalendarDayComponent extends React.Component {
   getFooterTextStyle() {
     const { marking = {} } = this.props;
     const style = {
-      color: '#c1c2c1'
+      color: '#c1c2c1',
+      fontSize:10
     };
 
     if (marking.inventory > 0) {
@@ -60,7 +82,7 @@ class CalendarDayComponent extends React.Component {
     const { marking = {} } = this.props;
   //  if (typeof marking === 'object') {
    //   if (marking.inventory >= 0) {
-        return marking.inventory;
+        return marking.task;
    //   }
   //  }
     return '';
@@ -68,8 +90,8 @@ class CalendarDayComponent extends React.Component {
 
   onDayPress() {
     this.props.onPress(this.props.date);
-    console.log(this.props);
-    console.log(this);
+   /*  console.log(this.props);
+    console.log(this); */
   }
 
   render() {

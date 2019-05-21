@@ -14,6 +14,10 @@ import ProductDetailsScreen from './components/ProductDetailsScreen';
 import ProductAddScreen from './components/ProductAddScreen';
 import ProductEditScreen from './components/ProductEditScreen';
 import HabitAddScreen from './components/HabitAddScreen';
+import HabitScreen from './components/HabitScreen';
+import HabitDetailsScreen from './components/HabitDetailsScreen';
+
+
 
 const RootStack = createStackNavigator(
   {
@@ -21,10 +25,12 @@ const RootStack = createStackNavigator(
     ProductDetails: ProductDetailsScreen,
     AddProduct: ProductAddScreen,
     AddHabit: HabitAddScreen,
+    Habit: HabitScreen,
+    HabitDetails: HabitDetailsScreen,
     EditProduct: ProductEditScreen,
   },
   {
-    initialRouteName: 'Product',
+    initialRouteName: 'Habit',
     navigationOptions: {
       headerStyle: {
         backgroundColor: '#779877',

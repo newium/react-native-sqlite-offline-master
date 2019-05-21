@@ -13,7 +13,7 @@ import { ListItem, Button } from "react-native-elements";
 import Database from "../Database2";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import AvatarBar from "./small-components/AvatarBar";
-import Habit from "./small-components/HabitUnfinished";
+import Habit from "./small-components/Habit2";
 import Dialog, {
   DialogTitle,
   DialogContent,
@@ -66,17 +66,30 @@ export default class ProductScreen extends Component {
     this.state = {
       isLoading: true,
       products: [],
-      unfinishedHabitsDialog: true,
+      unfinishedHabitsDialog: false,
       notFound:
         "You have no habits yet :(\nPlease click (+) button to add some",
       iconColor: "gray"
     };
+   
+
+
   }
 
   componentDidMount() {
     this._subscribe = this.props.navigation.addListener("didFocus", () => {
       this.getProducts();
     });
+
+     let today=(new Date()).valueOf();
+    today+=60*60*60*24*1000
+    /* db.getUnfinishedDays(today).then(
+      result => {
+        for (i=0;i<100;i++)
+        console.log(result.rows.item(i))
+       
+        
+      }) */
   }
 
   getProducts() {

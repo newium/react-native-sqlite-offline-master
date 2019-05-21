@@ -7,7 +7,7 @@ import CalendarDayComponent from './CalendarDayComponent';
 
 const db = new Database();
 
-export default class ProductDetailsScreen extends Component {
+export default class HabitDetailsScreen extends Component {
   static navigationOptions = {
     title: 'Habit Details',
   }
@@ -16,22 +16,76 @@ export default class ProductDetailsScreen extends Component {
     super();
     this.state = {
       isLoading: true,
-      days: {},
-      
+      markedDays: {},
+      id:'',
+      habit:{},
+      today: '',
+      now:new Date(),
     };
+    console.log((new Date()).toISOString().split('T')[0])
+    console.table(this.state)
   }
 
   componentDidMount() {
     this._subscribe = this.props.navigation.addListener('didFocus', () => {
       const { navigation } = this.props;
-      db.productById(navigation.getParam('prodId')).then((data) => {
-        console.log(data);
-        product = data;
+      db.habitById(navigation.getParam('habitId')).then((data) => {
+        
+        habit = data;
         this.setState({
-          product,
-          isLoading: false,
-          id: product.prodId
+          habit,
+          
+          id: habit.habitId
         });
+      }).then(() => {
+        db.getAllDaysForHabit(navigation.getParam('habitId')).then(data => {
+          let days = data.map( x => 
+            {
+              key=""+x.year;
+          if(x.month>=10)
+            key=key+"-"+x.month;
+          else
+            key=key+"-0"+x.month;
+          if(x.day>=10)
+            key=key+"-"+x.day;
+          else
+            key=key+"-0"+x.day;
+              value={ 'status':x.status,'task':x.task};
+              return [key,value]
+            });
+            
+            
+
+            const obj = Object.fromEntries(days)
+            
+
+
+          this.setState({
+            markedDays:obj,
+            
+          });
+          
+          db.getDayForHabit(this.state.now,navigation.getParam('habitId')).then((result) => {
+            this.setState({
+              today:result,
+              isLoading: false
+            });
+
+          }).catch((err) => {
+            console.log(err);
+          });
+
+
+        })
+        .catch(err => {
+          console.log(err);
+          this.setState = {
+            isLoading: false
+          };
+        });
+
+
+
       }).catch((err) => {
         console.log(err);
         this.setState = {
@@ -40,6 +94,8 @@ export default class ProductDetailsScreen extends Component {
       })
     });
   }
+
+
   
   deleteProduct(id) {
     const { navigation } = this.props;
@@ -56,6 +112,208 @@ export default class ProductDetailsScreen extends Component {
       }
     })
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  handlePress = () => {
+    
+
+    if (     this.state.today.status === "bad" ||  this.state.today.status === "none" )
+      {
+        let todayCopy=this.state.today;
+        todayCopy.status ="great"
+        this.setState({
+          today: todayCopy,
+          isLoading: true
+        });
+      }
+    else if (this.state.today.status === "great") 
+    {
+      let todayCopy=this.state.today;
+        todayCopy.status = "neutral"
+        this.setState({
+          today: todayCopy,
+          isLoading: true
+        });
+     
+    }
+    else 
+    {
+      let todayCopy=this.state.today;
+        todayCopy.status = "bad"
+        this.setState({
+          today: todayCopy,
+          isLoading: true
+        });
+      
+    }
+   
+    this.updateDay();
+    
+  }
+
+
+  updateDay =()=>
+  {
+    
+    db.updateDayStatus(this.state.today.status,this.state.now,this.state.id).then((result) => {
+      console.log(result);
+     
+    }).catch((err) => {
+      console.log(err);
+      
+    })
+    if(this.state.today.status==='great')
+        {
+          
+        }
+    
+    
+     
+    if(this.state.today.status==='neutral')
+    {
+      
+        let task=this.state.today.task;
+        let counter=this.state.habit.currentDayUntilReward;
+        let tempDate=(this.state.now.valueOf());
+        for(let i=0;i<49;i++)
+        { 
+          tempDate+=24*60*60*1000;
+          db.updateDayTask( task,tempDate,this.state.habit.habitId).then(
+            result => {
+              //console.log(result);
+              
+            }
+          ).catch(err => {
+            console.log(err);
+            
+          });
+
+         
+          
+                if(counter===0)
+                {
+                  task+=Number(this.state.habit.rateValue);
+                  counter=Number(this.state.habit.rateDays);
+                }
+                counter--;
+        
+        }
+    }
+
+
+    if(this.state.emotion==='bad')
+    {
+      let task=this.state.today.task-Number(this.state.habit.rateValue);
+      let counter=this.state.habit.currentDayUntilReward;
+      let tempDate=(this.state.now.valueOf());
+      for(let i=0;i<49;i++)
+      {
+        tempDate+=24*60*60*1000;
+        db.updateDayTask( task,tempDate,this.state.habit.habitId).then(
+          result => {
+            //console.log(result);
+            
+          }
+        ).catch(err => {
+          console.log(err);
+          
+        });
+        
+        
+              if(counter===0)
+              {
+                task+=Number(this.state.habit.rateValue);
+                counter=Number(this.state.habit.rateDays);
+              }
+              counter--;
+       
+      }
+    }
+
+
+    db.getAllDaysForHabit(this.state.id).then(data => {
+      let days = data.map( x => 
+        {
+
+          key=""+x.year;
+          if(x.month>=10)
+            key=key+"-"+x.month;
+          else
+            key=key+"-0"+x.month;
+          if(x.day>=10)
+            key=key+"-"+x.day;
+          else
+            key=key+"-0"+x.day;
+          value={ 'status':x.status,'task':x.task};
+          return [key,value]
+        });
+        
+        
+
+        const obj = Object.fromEntries(days)
+
+
+        
+      this.setState({
+        markedDays:obj,
+        
+      });
+      db.getDayForHabit(this.state.now,this.state.id).then((result) => {
+        this.setState({
+          today:result,
+          isLoading: false
+        });
+
+      }).catch((err) => {
+        console.log(err);
+      });
+  
+  
+    })
+    console.table(this.state);
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   render() {
     if(this.state.isLoading){
@@ -77,28 +335,19 @@ export default class ProductDetailsScreen extends Component {
             <Calendar
           
           dayComponent={CalendarDayComponent}
-          minDate={'2019-05-10'}
+          minDate={this.state.now.toISOString().split('T')[0]}
   // Maximum date that can be selected, dates after maxDate will be grayed out. Default = undefined
-  maxDate={'2019-05-20'}
+ // maxDate={this.state.now.toISOString().split('T')[0]}
           style={{
             paddingLeft: 0, paddingRight: 0
           }}
-          onDayPress={(day) => {console.log('selected day', day)}}
-          markedDates={{
-            '2019-05-13': {soldOut: false, blocked: false, inventory: 0},
-            '2019-05-14': {soldOut: false, blocked: false, inventory: 2},
-            '2019-05-15': {soldOut: false, blocked: true, inventory: 0},
-            '2019-05-16': {soldOut: false, blocked: true, inventory: 2},
-            '2019-05-23': {soldOut: true, blocked: false, inventory: 0},
-            '2019-05-24': {soldOut: true, blocked: false, inventory: 2},
-            '2019-05-25': {soldOut: true, blocked: true, inventory: 0},
-            '2019-05-26': {soldOut: true, blocked: true, inventory: 2}
-          }}
-         
+          onDayPress={this.handlePress}
+          markedDates={this.state.markedDays}
+         firstDay={1}
           
         />
             </View>
-            <View>
+           {/*  <View>
               <Text style={{fontSize: 16}}>Product ID: {this.state.product.prodId}</Text>
             </View>
             <View>
@@ -109,7 +358,7 @@ export default class ProductDetailsScreen extends Component {
             </View>
             <View>
               <Text style={{fontSize: 16}}>Product Price: {this.state.product.prodPrice}</Text>
-            </View>
+            </View> */}
           </View>
           <View style={styles.detailButton}>
             <Button

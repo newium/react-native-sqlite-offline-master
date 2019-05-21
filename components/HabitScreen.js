@@ -29,7 +29,7 @@ import HabitUnfinished from "./small-components/HabitUnfinished";
 
 const db = new Database();
 
-export default class ProductScreen extends Component {
+export default class HabitScreen extends Component {
   static navigationOptions = ({ navigation }) => {
     return {
       title: "Ready to seize the day?",
@@ -38,7 +38,7 @@ export default class ProductScreen extends Component {
           buttonStyle={{ padding: 0, backgroundColor: "transparent" }}
           icon={{
             name: "add-circle",
-            style: { marginRight: 60, fontSize: 36 }
+            style: { paddingRight: 60, fontSize: 36 }
           }}
           onPress={() => {
             navigation.navigate("AddHabit", {
@@ -57,73 +57,219 @@ export default class ProductScreen extends Component {
       isLoading: true,
       habits: [],
       lastAccess: '',
+      now: new Date(),
       user: {},
       unfinishedDays: [],
-      unfinishedHabitsDialog: false,
-      notFound:
-        "You have no habits yet :(\nPlease click (+) button to add some",
-      
+      notFound: "You have no habits yet :(\nPlease click (+) button to add some",
+      doCalc: false,
+      giveYesterdayAChance:false,
+      avatarEmotion: 'neutral',
+    
     };
+
+
+    
   }
 
   componentDidMount() {
     this._subscribe = this.props.navigation.addListener("didFocus", () => {
-      this.getHabits();
-      this.getUser();
-    });
-    let today= new Date();
-    this.updateUserAccess(today);
-    let yesterday=today-(12*60*60*1000);
-      getUnfinishedDays(yesterday);
+                
 
-      
-    if(today.getHours<12)
-    {
-      
-      if(this.state.unfinishedDays.length===0)
-      {
-        this._interval = setInterval(() => {
-            let noon=new Date();
-            noon.setHours=12;
-            noon.setMinutes=0;
-            if(today>=noon)
-            {
-              this.calculatePoints();
-            }
 
-              }, 120000); 
-      }
-      
-      else
-      {
-        this.setState({
-          unfinishedHabitsDialog:true,
-        });
-      
-      }
-    }
-    else
-    {
+                
+                this.getHabits();
+                this.getUser();
 
-    }
-  }
+               
 
-  componentWillUnmount() {
-    clearInterval(this._interval);
-  }
+
+                
+                this.updateUserAccess(this.state.now);
+                
+                
+                /* let yesterday = new Date(this.state.now - (24 * 60 * 60 * 1000));
+                console.log(yesterday);
+                this.getUnfinishedDays(yesterday);
+ */
+
+
+
+            })
+          }
+
 
 
   calculatePoints(){
 
+    let unCalcDays =[];
+    let nowZero=this.state.now;
+    nowZero.setHours(0,0,0,0);
+    let pointSum=0;
+    this.state.habits.forEach(habit => {
+      db.getUncalculatedDaysForHabit(nowZero,habit.habitId)
+          .then(result => {
+              let habitSum=habit.currentReward;
+            for (i=0;i<result.rows.length;i++)
+              {
+                let thStatus=result.rows.item(i).status
+                if(thStatus==='great')
+                {
+                    habitSum++;
+                    pointSum+=habitSum;
+                    habit.currentDayUntilReward--;
+
+                    let task=Number(result.rows.item(i).task);
+                    let counter=Number(habit.currentDayUntilReward);
+                    let tempDate=(result.rows.item(i).timestamp)+24*60*60*1000;
+                    for(let i=0;i<49;i++)
+                    {
+                      if(counter===0)
+                            {
+                              task+=Number(habit.rateValue);
+                              counter=Number(this.state.rateDays);
+                            }
+                      
+                      counter--;
+                      tempDate+=24*60*60*1000;
+                    }
+                    
+                    db.addBlankDay(tempDate, task,habit.habitId).then(
+                      result => {
+                        //console.log(result);
+                        
+                      }
+                    );
+
+                }
+                else if(thStatus==='bad')
+                  {
+                    if(habitSum>=0)
+                      habitSum=-10;
+                    else
+                      habitSum-=-10;
+
+                    pointSum+=habitSum;
+
+
+                    let task=Number(result.rows.item(i).task)-Number(habit.rateValue);
+                    let counter=Number(habit.rateDays);
+                    let tempDate=(result.rows.item(i).timestamp)+24*60*60*1000;
+                    for(let j=0;j<49;j++)
+                    {
+                     
+                      {
+                        db.updateDayTask( task,tempDate,habit.habitId).then(
+                          result => {
+                            //console.log(result);
+                            
+                          }
+                        );
+                      }
+                      
+                      tempDate+=24*60*60*1000;
+                      counter--;
+                            if(counter===0)
+                            {
+                              task+=Number(habit.rateValue);
+                              counter=Number(this.state.rateDays);
+                            }
+                    }
+                    db.addBlankDay(tempDate, task,habit.habitId).then(
+                      result => {
+                        //console.log(result);
+                        
+                      }
+                    );
+
+
+                  }
+                  else if(thStatus==='neutral')
+                  {
+                    let task=Number(result.rows.item(i).task);
+                    let counter=Number(habit.rateDays);
+                    let tempDate=(result.rows.item(i).timestamp)+24*60*60*1000;
+                    for(let i=0;i<49;i++)
+                    {
+                      db.updateDayTask( task,tempDate,habit.habitId).then(
+                        result => {
+                          //console.log(result);
+                          
+                        }
+                      );
+                      tempDate+=24*60*60*1000;
+                      counter--;
+                            if(counter===0)
+                            {
+                              task+=Number(habit.rateValue);
+                              counter=Number(this.state.rateDays);
+                            }
+                    }
+
+                    db.addBlankDay(tempDate, task,habit.habitId).then(
+                      result => {
+                        //console.log(result);
+                        
+                      }
+                    );
+                  }
+                                
+                    
+
+              }
+            
+
+          }).then((result) => {
+            db.setCalculatedDaysForHabit(nowZero,habit.habitId).then(
+              (result) => {
+              
+            }).catch((err) => {
+              console.log(err);
+            });
+            
+          })
+          .catch(err => {
+            console.log(err);
+          
+            
+          });
+    });
+    if(pointSum<0)
+    {
+      if((0-pointSum)<this.state.user.currentHealth)
+        this.state.user.currentHealth-=pointSum;
+      else
+        {
+          pointSum+this.state.user.currentHealth;
+          this.state.user.currentHealth=0;
+          this.state.user.currentStars=Math.max(0,this.state.user.currentStars-=pointSum)
+        }
+    }
+    else
+    {
+      if((pointSum)<this.state.user.maximumHealth-this.state.user.currentHealth)
+      {
+        this.state.user.currentHealth+=pointSum;
+      }
+      else
+      {
+        pointSum-=(this.state.user.maximumHealth-this.state.user.currentHealth);
+        this.state.user.currentStars+=pointSum;
+        this.state.user.currentHealth=this.state.user.maximumHealth;
+      }
+    }
+    
+    
+
+
 
 
   }
 
 
 
-  updateUserAccess(today) 
+  updateUserAccess =()=> 
   {
-    let data= now.toString();
+    let data= this.state.now.toString();
     db.updateUserAccess(data).then((result) => {
       console.log(result);
       this.setState({
@@ -139,15 +285,30 @@ export default class ProductScreen extends Component {
   }
 
 
-  getUnfinishedDays(date) {
+  getUnfinishedDays =(date) =>{
     let days = [];
-    db.getUnfinishedDay(date.getDate(),date.getMonth(),date.getHour())
+   
+    db.getUnfinishedDayForDate(date)
       .then(data => {
         days = data;
+        
+                if (this.state.unfinishedDays.length !== 0)
+                    this.setState({
+                        giveYesterdayAChance: true,
+                    });
+                else {
+                    console.table(this.state.lastAccess);
+                    console.log("YES IM IN THE DATABASE, WALLNUT")
+                    if (date.getDate() != this.state.lastAccess.getDate()) {
+                        this.calculatePoints();
+
+                    }
+                }
         this.setState({
-          unfinishedDays=days,
+          unfinishedDays :days,
           isLoading: false
         });
+        console.table(this.state)
       })
       .catch(err => {
         console.log(err);
@@ -155,53 +316,48 @@ export default class ProductScreen extends Component {
           isLoading: false
         };
       });
+
+
+
+
   }
 
-  getProducts() {
-    let products = [];
-    db.listProduct()
-      .then(data => {
-        products = data;
-        this.setState({
-          products,
-          isLoading: false
-        });
-      })
-      .catch(err => {
-        console.log(err);
-        this.setState = {
-          isLoading: false
-        };
-      });
-  }
+  
 
   getHabits() {
     let habits = [];
+    
     db.listHabits()
-      .then(data => {
-        habits = data;
+      .then(result => {
+        for (i=0;i<result.rows.length;i++)
+        habits.push(result.rows.item(i));
+      
+        
         this.setState({
-          habits
+          habits: habits,
         });
+        
       })
       .catch(err => {
         console.log(err);
-        this.setState = {
-          isLoading: false
-        };
+        
       });
   }
 
-  getUser() {
-    let habits = [];
+  getUser=()=> {
+   
     db.getUser()
       .then(data => {
         user = data;
         this.setState({
           user,
           lastAccess:new Date(user.lastAccess),
-          isLoading: false
+          isLoading: false,
         });
+        console.log('cowabunga it is')
+console.table(this.state)
+
+
       })
       .catch(err => {
         console.log(err);
@@ -209,6 +365,8 @@ export default class ProductScreen extends Component {
           isLoading: false
         };
       });
+      
+      
   }
 
 
@@ -217,7 +375,12 @@ export default class ProductScreen extends Component {
 
 
 
-
+handleHabit = emotion =>
+{
+   this.setState({
+          avatarEmotion: emotion,
+        });
+}
 
 
 
@@ -228,14 +391,9 @@ export default class ProductScreen extends Component {
 
   renderRegular = ({ item }) => (
    
-<Habit name= {item.habitName}
-id={item.habitId}
-icon={item.icon}
-handleHabit={(emotion)=> {
-  this.setState({
-          avatarEmotion: emotion,
-        });
-}}
+<Habit habit= {item}
+handleHabit={this.handleHabit}
+now={this.state.now}
 >
 </Habit>
   );
@@ -243,16 +401,10 @@ handleHabit={(emotion)=> {
   renderUnfinished=({item})=>
   {
 
-    <HabitUnfinished
-    name={this.state.habits.find(function(element) {
-  return element.habitId = item.habitId;
-    })[name] }
-    icon={this.state.habits.find(function(element) {
-  return element.habitId = item.habitId;
-    })[icon] }
-    
+    <HabitUnfinished habit= {item}
+    handleHabit={this.handleHabit}
+    now={this.state.now}
     >
-
     </HabitUnfinished>
   }
 
@@ -266,23 +418,30 @@ handleHabit={(emotion)=> {
         </View>
       );
     }
-    if (this.state.products.length === 0) {
+    if (this.state.habits.length === 0) {
       return (
         <View>
+        <AvatarBar 
+          emotion={this.state.avatarEmotion}
+        />
           <Text style={styles.message}>{this.state.notFound}</Text>
         </View>
       );
     }
+    
     return (
       <View>  
-        <AvatarBar />
+        <AvatarBar 
+          emotion={this.state.avatarEmotion}
+        />
 
-        <Dialog
+         <Dialog
           onDismiss={() => {
-            this.setState({ unfinishedHabitsDialog: false });
+            this.setState({ giveYesterdayAChance: false });
+            this.calculatePoints();
           }}
           width={0.9}
-          visible={this.state.unfinishedHabitsDialog}
+          visible={this.state.giveYesterdayAChance}
           rounded
           actionsBordered
           // actionContainerStyle={{
@@ -291,7 +450,7 @@ handleHabit={(emotion)=> {
           // }}
           dialogTitle={
             <DialogTitle
-              title="Popup Dialog - Default Animation"
+              title="You have been neglecting your habits.\nHere's a second chance for yesterday"
               style={{
                 backgroundColor: '#F7F7F8',
               }}
@@ -301,20 +460,25 @@ handleHabit={(emotion)=> {
           }
           footer={
             <DialogFooter>
+              
               <DialogButton
-                text="CANCEL"
+                text="COMMIT"
                 bordered
                 onPress={() => {
-                  this.setState({ unfinishedHabitsDialog: false });
-                }}
+                  this.setState({ giveYesterdayAChance: false });
+                  this.calculatePoints();
+                          }
+                          }
                 key="button-1"
               />
               <DialogButton
                 text="OK"
                 bordered
                 onPress={() => {
-                  this.setState({ unfinishedHabitsDialog: false });
-                }}
+                  this.setState({ giveYesterdayAChance: false });
+                  this.calculatePoints();
+                          }
+                          }
                 key="button-2"
               />
             </DialogFooter>
@@ -332,12 +496,12 @@ handleHabit={(emotion)=> {
         />
 
           </DialogContent>
-        </Dialog>
+        </Dialog> 
 
         <FlatList
           keyExtractor={this.keyExtractor}
           data={this.state.habits}
-          render={this.renderRegular}
+          renderItem={this.renderRegular}
         />
         
          
