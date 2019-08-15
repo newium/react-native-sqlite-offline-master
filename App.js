@@ -16,7 +16,8 @@ import ProductEditScreen from './components/ProductEditScreen';
 import HabitAddScreen from './components/HabitAddScreen';
 import HabitScreen from './components/HabitScreen';
 import HabitDetailsScreen from './components/HabitDetailsScreen';
-
+import IconSelect from './components/small-components/IconSelect';
+import HabitEditScreen from './components/HabitEditScreen';
 
 
 const RootStack = createStackNavigator(
@@ -27,7 +28,9 @@ const RootStack = createStackNavigator(
     AddHabit: HabitAddScreen,
     Habit: HabitScreen,
     HabitDetails: HabitDetailsScreen,
+    EditHabit: HabitEditScreen,
     EditProduct: ProductEditScreen,
+    IconSelect:IconSelect
   },
   {
     initialRouteName: 'Habit',

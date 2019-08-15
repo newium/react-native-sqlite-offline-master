@@ -2,178 +2,227 @@ import React, { Component } from "react";
 import { withNavigation } from "react-navigation";
 import { StyleSheet, View, Text, TouchableOpacity, Image } from "react-native";
 import Database from "../../Database2";
-import Icon from "react-native-vector-icons/MaterialIcons";
-
-
-
-
-
+import { Icon } from "react-native-elements";
 const db = new Database();
 
 class HabitUnfinished extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
-      backgroundColor: "red",
-      emotion: 'bad',
-      dayTask: '',
+      iconColor: "red",
+      emotion: "bad",
+      dayTask: "",
+      icon: "clear",
+      day:{},
     };
-    getDailyTask();
+    this.getDailyTask();
+    
   }
 
-getDailyTask = () =>
-{
-  db.getDay(this.props.now-24*60*60*1000,this.props.habitId).then(data => {
-    
-    this.setState({
-      dayTask:data.task,
-    
-    });
-  })
-  .catch(err => {
-    console.log(err);
-    
-  });
-}
-
-
-  handlePress = () => {
-    
-    if (
-      this.state.backgroundColor === "gray" ||
-      this.state.backgroundColor === "red"
-    )
-      {
-        this.state = {
-          backgroundColor: "green",
-          emotion: 'great',
-        };
-      }
-    else if (this.state.backgroundColor === "green") 
-    {
-      this.state = {
-        backgroundColor: "blue",
-        emotion: 'neutral',
-      };
-    }
-    else 
-    {
-      
-      this.state = {
-        backgroundColor: "red",
-        emotion: 'bad',
-      };
-    }
-  
-    updateDay();
-    this.props.handleHabit(this.state.emotion);
-  }
-
-
-  updateDay =()=>
-  {
-   
-    db.updateDayStatus(this.state.emotion,this.props.now-24*60*60*1000,this.props.habitId).then((result) => {
-      console.log(result);
-     
-    }).catch((err) => {
-      console.log(err);
-      
-    })
-    if(this.state.emotion==='great')
-        {
-          return;
-        }
-    
-    
-     
-    if(this.state.emotion==='neutral')
-    {
-      
-        let task=this.state.dayTask;
-        let counter=this.props.habit.currentDayUntilReward;
-        let tempDate=(this.props.now.valueOf());
-        for(let i=0;i<49;i++)
-        {
-          db.updateDayTask( task,tempDate,habit.habitId).then(
-            result => {
-              //console.log(result);
-              
-            }
-          ).catch(err => {
-            console.log(err);
-            
-          });
-
-          tempDate+=24*60*60*1000;
-          
-                if(counter===0)
-                {
-                  task+=Number(habit.rateValue);
-                  counter=Number(this.state.rateDays);
-                }
-                counter--;
-        
-        }
-    }
-
-
-    if(this.state.emotion==='bad')
-    {
-      let task=this.state.dayTask-Number(habit.rateValue);
-      let counter=this.props.habit.currentDayUntilReward;
-      let tempDate=(this.props.now.valueOf())-24*60*60*1000;
-      for(let i=0;i<49;i++)
-      {
-        db.updateDayTask( task,tempDate,habit.habitId).then(
-          result => {
-            //console.log(result);
-            
-          }
-        ).catch(err => {
-          console.log(err);
+  getDailyTask = () => {
+    db.getDayForHabit(this.props.now - 24 * 60 * 60 * 1000, this.props.habit.habitId)
+      .then(data => {
+        this.setState({
+          dayTask: data.task,
+          day:data,
+        });
+        if(data.status)
+        this.setState({
+         emotion:data.status
           
         });
-        tempDate+=24*60*60*1000;
-        
-              if(counter===0)
-              {
-                task+=Number(habit.rateValue);
-                counter=Number(this.state.rateDays);
-              }
-              counter--;
-       
+        if(data.status=='great')
+        this.setState({
+         iconColor: 'green'
+          
+        });
+        if(data.status=='bad')
+        this.setState({
+         iconColor: 'red'
+          
+        });
+        if(data.status=='neutral')
+        this.setState({
+         iconColor: 'blue'
+          
+        });
+        console.log(this.state.iconColor);
+        if (this.state.iconColor === "red") {
+          this.setState({
+            iconColor: "red",
+            emotion: "bad",
+            icon: "clear"
+          });
+        } else if (this.state.iconColor === "blue") {
+          this.setState({
+            iconColor: "blue",
+            emotion: "neutral",
+            icon: "replay"
+          });
+        } else if (this.state.iconColor === "green") {
+          this.setState({
+            iconColor: "green",
+            emotion: "great",
+            icon: "done"
+          });
+          console.log(this.state.icon);
+          this.props.handleHabit();
+        }
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  };
+
+  handlePress = () => {
+    console.log(this.state.iconColor);
+    if (this.state.iconColor === "blue") {
+      this.setState({
+        iconColor: "red",
+        emotion: "bad",
+        icon: "clear"
+      }, () =>{this.updateDay(this.state.emotion)});
+    } else if (this.state.iconColor === "green") {
+      this.setState({
+        iconColor: "blue",
+        emotion: "neutral",
+        icon: "replay"
+      }, () =>{this.updateDay(this.state.emotion)});
+    } else {
+      this.setState({
+        iconColor: "green",
+        emotion: "great",
+        icon: "done"
+      }, () =>{this.updateDay(this.state.emotion)});
+    }
+    
+  };
+
+  updateDay = (emotion) => {
+    this.props.handleHabit();
+    db.updateDayStatus(emotion, this.props.now-24*60*60*1000, this.props.habit.habitId)
+      .then(result => {
+        console.log(result);
+      })
+      .catch(err => {
+        console.log(err);
+      });
+    if (emotion === "great") {
+      let task;
+      if (this.props.habit.currentDayUntilReward === 1) {
+        task =
+          Number(this.state.dayTask) + Number(this.props.habit.rateValue);
+      } else {
+        task = Number(this.state.dayTask);
+      }
+      let counter = this.props.habit.currentDayUntilReward;
+      let tempDate = this.props.now.valueOf()-24*60*60*1000;
+      let month = new Date(tempDate).getMonth();
+      let m=month;
+      while (
+        month === m ||
+        month === (m + 1) % 12
+      ) {
+        tempDate += 24 * 60 * 60 * 1000;
+        db.updateDayTask(task, tempDate, this.props.habit.habitId)
+          .then(result => {
+            //console.log(result);
+          })
+          .catch(err => {
+            console.log(err);
+          });
+
+        month = new Date(tempDate).getMonth();
+        counter--;
+        if (counter === 0) {
+          task += Number(this.props.habit.rateValue);
+          counter = Number(this.props.habit.rateDays);
+        }
       }
     }
-  
-  }
 
+    if (emotion === "neutral") {
+      let task = Number(this.state.dayTask);
+      let counter = Number(this.props.habit.rateDays);
+      let tempDate = this.props.now.valueOf()-24*60*60*1000; //in milis
+      let month = new Date(tempDate).getMonth();
+      let m=month;
+      while (
+        month === m ||
+        month === (m + 1) % 12
+      ) {
+        tempDate += 24 * 60 * 60 * 1000;
+        db.updateDayTask(task, tempDate, this.props.habit.habitId)
+          .then(result => {
+            //console.log(result);
+          })
+          .catch(err => {
+            console.log(err);
+          });
+
+        month = new Date(tempDate).getMonth();
+        counter--;
+        if (counter === 0) {
+          task += Number(this.props.habit.rateValue);
+          counter = Number(this.props.habit.rateDays);
+        }
+      }
+    }
+
+    if (emotion === "bad") {
+      let task =
+        Number(this.state.dayTask) - Number(this.props.habit.rateValue);
+      let counter = this.props.habit.rateDays;
+      let tempDate = this.props.now.valueOf()-24*60*60*1000;
+      let month = new Date(tempDate).getMonth();
+      let m=month;
+      while (
+        month === m ||
+        month === (m + 1) % 12
+      ) {
+        tempDate += 24 * 60 * 60 * 1000;
+        db.updateDayTask(task, tempDate, this.props.habit.habitId)
+          .then(result => {
+            //console.log(result);
+          })
+          .catch(err => {
+            console.log(err);
+          });
+
+        month = new Date(tempDate).getMonth();
+        counter--;
+        if (counter === 0) {
+          task += Number(this.props.habit.rateValue);
+          counter = Number(this.props.habit.rateDays);
+        }
+      }
+    }
+
+
+  };
 
   render() {
+    console.table(this.state)
     return (
       <View style={styles.listItem}>
-        
+      <TouchableOpacity
+       onPress={this.handlePress}
+       style={styles.whattheflex}>
           <View>
-            <Icon name={this.props.habit.icon} size={36} color="#111" />
+            <Icon name={this.props.habit.icon} size={46} color="#46499a" />
           </View>
-          <View style={{ margin: 5, flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between" }}>
-           <View> <Text style={{ fontSize: 24 }}>
-              {this.props.habit.habitName}</Text></View>
-              <View> <Text>{this.state.dayTask}</Text></View>
-            
+          <View style={{ margin: 10, textAlign: "left" }}>
+            <Text style={{ fontSize: 28 }}>{this.props.habit.habitName}</Text>
+            <Text style={{ fontSize: 8 }}>{this.props.dayTask}</Text>
           </View>
-        
+        </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={this.handlePress}
-        >
+        <TouchableOpacity onPress={this.handlePress}>
           <View>
             <Icon
-              name="location-city"
+              name={this.state.icon}
               size={36}
-              color={this.state.backgroundColor}
+              color={this.state.iconColor}
             />
           </View>
         </TouchableOpacity>
@@ -200,4 +249,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default (HabitUnfinished);
+export default HabitUnfinished;
