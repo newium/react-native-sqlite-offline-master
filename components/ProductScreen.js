@@ -6,13 +6,23 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Image
+  Image,
+  ButtonRN
 } from "react-native";
 import { ListItem, Button } from "react-native-elements";
 import Database from "../Database2";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import AvatarBar from "./small-components/AvatarBar";
-import Habit from "./small-components/Habit";
+import Habit from "./small-components/Habit2";
+import Dialog, {
+  DialogTitle,
+  DialogContent,
+  DialogFooter,
+  DialogButton,
+  SlideAnimation,
+  ScaleAnimation,
+} from 'react-native-popup-dialog';
+
 
 const db = new Database();
 
@@ -56,16 +66,30 @@ export default class ProductScreen extends Component {
     this.state = {
       isLoading: true,
       products: [],
+      unfinishedHabitsDialog: false,
       notFound:
         "You have no habits yet :(\nPlease click (+) button to add some",
       iconColor: "gray"
     };
+   
+
+
   }
 
   componentDidMount() {
     this._subscribe = this.props.navigation.addListener("didFocus", () => {
       this.getProducts();
     });
+
+     let today=(new Date()).valueOf();
+    today+=60*60*60*24*1000
+    /* db.getUnfinishedDays(today).then(
+      result => {
+        for (i=0;i<100;i++)
+        console.log(result.rows.item(i))
+       
+        
+      }) */
   }
 
   getProducts() {
@@ -90,12 +114,9 @@ export default class ProductScreen extends Component {
 
   renderItem = ({ item }) => (
    
-<Habit name= {item.prodName}
-prodId={item.prodId}></Habit>
-
-
-
-  );
+      <Habit name= {item.prodName}
+      prodId={item.prodId}></Habit>
+        );
 
   // style={[styles.placeImage, {backgroundColor: this.state.backgroundColor}] }  >
 
@@ -114,9 +135,70 @@ prodId={item.prodId}></Habit>
         </View>
       );
     }
+   
     return (
       <View>  
         <AvatarBar />
+
+        <Dialog
+          onDismiss={() => {
+            this.setState({ unfinishedHabitsDialog: false });
+          }}
+          width={0.9}
+          visible={this.state.unfinishedHabitsDialog}
+          rounded
+          actionsBordered
+          // actionContainerStyle={{
+          //   height: 100,
+          //   flexDirection: 'column',
+          // }}
+          dialogTitle={
+            <DialogTitle
+              title="Popup Dialog - Default Animation"
+              style={{
+                backgroundColor: '#F7F7F8',
+              }}
+              hasTitleBar={false}
+              align="left"
+            />
+          }
+          footer={
+            <DialogFooter>
+              <DialogButton
+                text="CANCEL"
+                bordered
+                onPress={() => {
+                  this.setState({ unfinishedHabitsDialog: false });
+                }}
+                key="button-1"
+              />
+              <DialogButton
+                text="OK"
+                bordered
+                onPress={() => {
+                  this.setState({ unfinishedHabitsDialog: false });
+                }}
+                key="button-2"
+              />
+            </DialogFooter>
+          }
+        >
+          <DialogContent
+            style={{
+              backgroundColor: '#F7F7F8',
+            }}
+          >
+            <FlatList
+          keyExtractor={this.keyExtractor}
+          data={this.state.products}
+          renderItem={this.renderItem}
+        />
+
+
+             </DialogContent>
+        </Dialog>
+
+
         <FlatList
           keyExtractor={this.keyExtractor}
           data={this.state.products}
